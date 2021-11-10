@@ -10,6 +10,9 @@ spec:
   - type: Allow
     to:
       cidrSelector: 8.8.8.8/32
-  - type: Deny
-    to:
+  - to:
+      cidrSelector: 10.0.0.0/16
+    type: Allow
+  - to:
       cidrSelector: 0.0.0.0/0
+    type: Deny
