@@ -43,23 +43,40 @@ PING 8.8.8.8 (8.8.8.8) 56(84) bytes of data.
 oc exec -ti test-egress -- ping -c2 1.1.1.1
 ```
 
-* Test curl to an awesome Blog Post webpage :
+* Test curl to the OpenShift docs webpage:
 
-```
-oc exec -ti test-egress -- curl https://rcarrata.com -I | head -n1
+```sh
+oc exec -ti test-egress -- curl https://docs.openshift.com -I | head -n1
 HTTP/2 200
 ```
 
-## Configure the Egress Firewall to Allow only Google's DNS:
+```sh
+dig +short docs.openshift.com
+elb.apps.openshift-web.p0s5.p1.openshiftapps.com.
+34.231.104.136
+54.204.56.156
+```
 
+```sh
+nslookup docs.openshift.com
 
+Non-authoritative answer:
+docs.openshift.com      canonical name = elb.apps.openshift-web.p0s5.p1.openshiftapps.com.
+Name:   elb.apps.openshift-web.p0s5.p1.openshiftapps.com
+Address: 34.231.104.136
+Name:   elb.apps.openshift-web.p0s5.p1.openshiftapps.com
+Address: 54.204.56.156
+```
+
+## Configure the Egress Firewall to Allow only Google's DNS
+
+* Allow only Google DNS in the namespace of egress-test:
 
 ```sh
 apiVersion: k8s.ovn.org/v1
 kind: EgressFirewall
 metadata:
-  name: default
-  namespace: egress-fw-test
+  name: allow-google-only
 spec:
   egress:
   - type: Allow
@@ -68,4 +85,10 @@ spec:
   - type: Deny
     to:
       cidrSelector: 0.0.0.0/0
+```
+
+as you can notice the egress.cidrSelector, allows the access only to the 8.8.8.8 IP and deny the rest of IPs (0.0.0.0/0) 
+
+```sh
+oc apply -f egress-fw/allow-google.yaml
 ```
