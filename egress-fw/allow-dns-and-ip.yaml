@@ -1,0 +1,16 @@
+kind: EgressFirewall
+apiVersion: k8s.ovn.org/v1
+metadata:
+  name: default
+  namespace: default
+spec:
+  egress:
+  - type: Allow
+    to:
+      dnsName: docs.openshift.com
+  - type: Allow
+    to:
+      cidrSelector: 8.8.0.0/16
+  - type: Deny
+    to:
+      cidrSelector: 0.0.0.0/0

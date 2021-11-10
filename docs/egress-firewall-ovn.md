@@ -68,7 +68,7 @@ Name:   elb.apps.openshift-web.p0s5.p1.openshiftapps.com
 Address: 54.204.56.156
 ```
 
-## Configure the Egress Firewall to Allow only Google's DNS
+## Configure the Egress Firewall to Allow only Google's DNS IP
 
 * Allow only Google DNS in the namespace of egress-test:
 
@@ -93,6 +93,43 @@ as you can notice the egress.cidrSelector, allows the access only to the 8.8.8.8
 oc apply -f egress-fw/allow-google.yaml
 ```
 
+
+* Test ICMP / Ping to Google's DNS IP (8.8.8.8):
+
+```sh
+oc exec -ti test-egress -- ping -c2 8.8.8.8
+
+PING 8.8.8.8 (8.8.8.8) 56(84) bytes of data.
+64 bytes from 8.8.8.8: icmp_seq=1 ttl=52 time=8.97 ms
+64 bytes from 8.8.8.8: icmp_seq=2 ttl=52 time=8.01 ms
+
+--- 8.8.8.8 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1001ms
+rtt min/avg/max/mdev = 8.010/8.489/8.969/0.479 ms
+```
+
+* Test ICMP / Ping to Cloudfare DNS IPs:
+
+```sh
+oc exec -ti test-egress -- ping -c2 1.1.1.1
+PING 1.1.1.1 (1.1.1.1) 56(84) bytes of data.
+
+--- 1.1.1.1 ping statistics ---
+2 packets transmitted, 0 received, 100% packet loss, time 1017ms
+
+command terminated with exit code 1
+```
+
+as expected this ping to 1.1.1.1 failed because it's denied by the 
+
+* Test curl to the OpenShift docs webpage:
+
+```sh
+oc exec -ti test-egress -- curl https://docs.openshift.com -I -m2
+curl: (28) Failed to connect to docs.openshift.com port 443 after 1504 ms: Operation timed out
+command terminated with exit code 28
+```
+
 ### ISSUE 1: Not allowed to use different name than default in the EgressPolicy
 
 NOTE: you can't define a name of the EgressFirewall different of **default** because the EgressFirewall won't allow as we can see:
@@ -113,3 +150,11 @@ spec:
   egress: 
     ...
 ```
+
+The CRD definition for the EgressFirewall is available in this [link](https://github.com/ovn-org/ovn-kubernetes/blob/master/go-controller/pkg/crd/egressfirewall/v1/types.go) and the pkg library code is in this [link](https://github.com/ovn-org/ovn-kubernetes/blob/master/go-controller/pkg/ovn/egressfirewall.go)
+
+The tests are also done using always the "default" name in [all the test cases](https://github.com/ovn-org/ovn-kubernetes/blob/master/go-controller/pkg/ovn/egressfirewall_test.go#L764).
+
+## Configure the Egress Firewall to one Allow IP CIDR and one DNS Name and deny the rest
+
+
