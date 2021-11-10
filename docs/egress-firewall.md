@@ -76,7 +76,7 @@ Address: 54.204.56.156
 apiVersion: k8s.ovn.org/v1
 kind: EgressFirewall
 metadata:
-  name: allow-google-only
+  name: default-google
 spec:
   egress:
   - type: Allow
@@ -91,4 +91,25 @@ as you can notice the egress.cidrSelector, allows the access only to the 8.8.8.8
 
 ```sh
 oc apply -f egress-fw/allow-google.yaml
+```
+
+### ISSUE 1: Not allowed to use different name than default in the EgressPolicy
+
+NOTE: you can't define a name of the EgressFirewall different of **default** because the EgressFirewall won't allow as we can see:
+
+```
+oc apply -f egress-fw/allow-google.yaml
+The EgressFirewall "pepe" is invalid: metadata.name: Invalid value: "pepe": metadata.name in body should match '^default$'
+```
+
+NOTE2: The [Egress Firewall documentation](https://docs.openshift.com/container-platform/4.9/networking/openshift_sdn/configuring-egress-firewall.html#nw-egressnetworkpolicy-object_openshift-sdn-egress-firewall) doesn't reflect this, because into the docs there is a reference that you can use whenever name you want:
+
+```
+apiVersion: network.openshift.io/v1
+kind: EgressNetworkPolicy
+metadata:
+  name: <name> 
+spec:
+  egress: 
+    ...
 ```

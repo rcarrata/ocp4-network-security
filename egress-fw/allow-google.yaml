@@ -1,7 +1,7 @@
 apiVersion: k8s.ovn.org/v1
 kind: EgressFirewall
 metadata:
-  name: allow-google-only
+  name: default
 spec:
   egress:
   - type: Allow
