@@ -103,3 +103,28 @@ oc exec -ti test-egress -- curl https://docs.openshift.com -I -m2
 curl: (28) Failed to connect to docs.openshift.com port 443 after 1504 ms: Operation timed out
 command terminated with exit code 28
 ```
+
+### ISSUE 2: More than one EgressNetworkPolicy for namespace
+
+NOTE: The [documentation](https://docs.openshift.com/container-platform/4.9/networking/openshift_sdn/configuring-egress-firewall.html#limitations-of-an-egress-firewall_openshift-sdn-egress-firewall) says in limitations (and in several places additionally):
+
+```md
+No project can have more than one EgressNetworkPolicy object.
+```
+If we copy as is the same egress firewall, with the same rules we can add the same policy with different name:
+
+```
+oc apply -f egress-fw/sdn/allow-google-pepe.yaml
+egressnetworkpolicy.network.openshift.io/default unchanged
+```
+
+```
+oc get egressnetworkpolicies.network.openshift.io
+NAME      AGE
+default   21m
+pepe      115s
+```
+
+
+In the documentation says that you can't have more than one EgressNetworkPolicy, but here demonstrates that you can.
+
