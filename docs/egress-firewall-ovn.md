@@ -132,13 +132,17 @@ curl: (28) Failed to connect to docs.openshift.com port 443 after 1504 ms: Opera
 command terminated with exit code 28
 ```
 
-### ISSUE 1: Not allowed to use different name than default in the EgressPolicy
+### ISSUE 2: More than one EgressNetworkPolicy for namespace
 
-NOTE: you can't define a name of the EgressFirewall different of **default** because the EgressFirewall won't allow as we can see:
+NOTE: The [documentation](https://docs.openshift.com/container-platform/4.9/networking/openshift_sdn/configuring-egress-firewall.html#limitations-of-an-egress-firewall_openshift-sdn-egress-firewall) says in limitations (and in several places additionally):
+
+```md
+No project can have more than one EgressNetworkPolicy object.
+```
 
 ```
-oc apply -f egress-fw/ovn/allow-google.yaml
-The EgressFirewall "pepe" is invalid: metadata.name: Invalid value: "pepe": metadata.name in body should match '^default$'
+oc apply -f egress-fw/ovn/allow-google-pepe.yaml
+
 ```
 
 NOTE2: The [Egress Firewall documentation](https://docs.openshift.com/container-platform/4.9/networking/openshift_sdn/configuring-egress-firewall.html#nw-egressnetworkpolicy-object_openshift-sdn-egress-firewall) doesn't reflect this, because into the docs there is a reference that you can use whenever name you want:
