@@ -1,0 +1,12 @@
+apiVersion: k8s.ovn.org/v1
+kind: EgressFirewall
+metadata:
+  name: default
+spec:
+  egress:
+  - type: Allow
+    to:
+      cidrSelector: 8.8.8.8/32
+  - type: Deny
+    to:
+      cidrSelector: 0.0.0.0/0
