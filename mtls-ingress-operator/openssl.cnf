@@ -66,12 +66,12 @@ database	= $dir/index.txt	# database index file.
 					# several certs with same subject.
 new_certs_dir	= /tmp		# default place for new certs.
 
-certificate	= $dir/OUTPUT/cacert.pem 	# The CA certificate
+certificate	= $dir/certs/cacert.pem 	# The CA certificate
 serial		= $dir/serial 		# The current serial number
 crlnumber	= $dir/crlnumber	# the current crl number
 					# must be commented out to leave a V1 CRL
 crl		= $dir/crl.pem 		# The current CRL
-private_key	= $dir/OUTPUT/cakey.pem# The private key
+private_key	= $dir/certs/cakey.pem # The private key
 
 x509_extensions	= usr_cert		# The extensions to add to the cert
 
