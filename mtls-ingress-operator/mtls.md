@@ -547,6 +547,19 @@ oc get IngressController default -n openshift-ingress-operator -o jsonpath='{.sp
 }
 ```
 
+
+On the other hand, as we change the ingress operator to support the mtls the Canary routes used for check the Ingress pods are showing some errors, so need to update their TLS certificate as well:
+
+```sh
+oc logs --namespace=openshift-ingress-operator deployments/ingress-operator -c ingress-operator --tail=5
+
+2021-11-12T11:26:28.343Z        INFO    operator.ingress_controller     controller/controller.go:298    reconciling{"request": "openshift-ingress-operator/default"}
+2021-11-12T11:26:28.415Z        ERROR   operator.ingress_controller     controller/controller.go:298    got retryable error; requeueing    {"after": "1m0s", "error": "IngressController is degraded: CanaryChecksSucceeding=False (CanaryChecksRepetitiveFailures: Canary route checks for the default ingress controller are failing)"}
+2021-11-12T11:27:26.365Z        ERROR   operator.canary_controller      wait/wait.go:155        error performing canary route check        {"error": "error sending canary HTTP request to \"canary-openshift-ingress-canary.apps.ocp.rober.lab\": Get \"https://canary-openshift-ingress-canary.apps.ocp.rober.lab\": remote error: tls: certificate required"}
+2021-11-12T11:27:28.415Z        INFO    operator.ingress_controller     controller/controller.go:298    reconciling{"request": "openshift-ingress-operator/default"}
+2021-11-12T11:27:28.512Z        ERROR   operator.ingress_controller     controller/controller.go:298    got retryable error; requeueing    {"after": "1m0s", "error": "IngressController is degraded: CanaryChecksSucceeding=False (CanaryChecksRepetitiveFailures: Canary route checks for the default ingress controller are failing)"}
+```
+
 ## Test the OpenShift Ingress Controller with mTLS enabled
 
 Now that we have the mTLS enabled in the ingress-controller, let's execute the exam curl as we used in the previous step:
@@ -609,3 +622,170 @@ curl: (56) OpenSSL SSL_read: error:1409445C:SSL routines:ssl3_read_bytes:tlsv13 
 
 as we expected the client certificate is requested by the Ingress pods, because it's configured in the ingress controller.
 
+* Let's try with curl and with the proper certificates to execute then the same curl to the ingress controller. We will use :
+
+```sh
+curl --cacert certs/cacert.pem --cert certs/client.cert.pem --key private/client.key.pem  -LIv https://console-openshift-console.apps.ocp.rober.lab -k
+* Rebuilt URL to: https://console-openshift-console.apps.ocp.rober.lab/
+*   Trying 192.168.126.1...
+* TCP_NODELAY set
+* Connected to console-openshift-console.apps.ocp.rober.lab (192.168.126.1) port 443 (#0)
+* ALPN, offering h2
+* ALPN, offering http/1.1
+* successfully set certificate verify locations:
+*   CAfile: certs/cacert.pem
+  CApath: none
+* TLSv1.3 (OUT), TLS handshake, Client hello (1):
+* TLSv1.3 (IN), TLS handshake, Server hello (2):
+* TLSv1.3 (IN), TLS handshake, [no content] (0):
+* TLSv1.3 (IN), TLS handshake, Encrypted Extensions (8):
+* TLSv1.3 (IN), TLS handshake, [no content] (0):
+* TLSv1.3 (IN), TLS handshake, Request CERT (13):
+* TLSv1.3 (IN), TLS handshake, [no content] (0):
+* TLSv1.3 (IN), TLS handshake, Certificate (11):
+* TLSv1.3 (IN), TLS handshake, [no content] (0):
+* TLSv1.3 (IN), TLS handshake, CERT verify (15):
+* TLSv1.3 (IN), TLS handshake, [no content] (0):
+* TLSv1.3 (IN), TLS handshake, Finished (20):
+* TLSv1.3 (OUT), TLS change cipher, Change cipher spec (1):
+* TLSv1.3 (OUT), TLS handshake, [no content] (0):
+* TLSv1.3 (OUT), TLS handshake, Certificate (11):
+* TLSv1.3 (OUT), TLS handshake, [no content] (0):
+* TLSv1.3 (OUT), TLS handshake, CERT verify (15):
+* TLSv1.3 (OUT), TLS handshake, [no content] (0):
+* TLSv1.3 (OUT), TLS handshake, Finished (20):
+* SSL connection using TLSv1.3 / TLS_AES_128_GCM_SHA256
+* ALPN, server did not agree to a protocol
+* Server certificate:
+*  subject: CN=*.apps.ocp.rober.lab
+*  start date: Nov  8 16:43:37 2021 GMT
+*  expire date: Nov  8 16:43:38 2023 GMT
+*  issuer: CN=ingress-operator@1636389644
+*  SSL certificate verify result: self signed certificate in certificate chain (19), continuing anyway.
+* TLSv1.3 (OUT), TLS app data, [no content] (0):
+> HEAD / HTTP/1.1
+> Host: console-openshift-console.apps.ocp.rober.lab
+> User-Agent: curl/7.61.1
+> Accept: */*
+>
+* TLSv1.3 (IN), TLS handshake, [no content] (0):
+* TLSv1.3 (IN), TLS handshake, Newsession Ticket (4):
+* TLSv1.3 (IN), TLS handshake, [no content] (0):
+* TLSv1.3 (IN), TLS handshake, Newsession Ticket (4):
+* TLSv1.3 (IN), TLS app data, [no content] (0):
+< HTTP/1.1 200 OK
+HTTP/1.1 200 OK
+```
+
+as you can see the client was able to connect to the web server using the client certificate. So this proves the mutual TLS authentication where both server and client are using TLS certificate to prove their identity.
+
+You can also check with the openssl using the private key and the cacert also:
+
+```sh
+openssl s_client -connect console-openshift-console.apps.ocp.rober.lab:443  -key private/client.key.pem  -cert certs/client.cert.pem -CAfile certs/cacert.pem -state
+
+CONNECTED(00000003)
+SSL_connect:before SSL initialization
+SSL_connect:SSLv3/TLS write client hello
+SSL_connect:SSLv3/TLS write client hello
+SSL_connect:SSLv3/TLS read server hello
+SSL_connect:TLSv1.3 read encrypted extensions
+SSL_connect:SSLv3/TLS read server certificate request
+depth=1 CN = ingress-operator@1636389644
+verify error:num=19:self signed certificate in certificate chain
+verify return:1
+depth=1 CN = ingress-operator@1636389644
+verify return:1
+depth=0 CN = *.apps.ocp.rober.lab
+verify return:1
+SSL_connect:SSLv3/TLS read server certificate
+SSL_connect:TLSv1.3 read server certificate verify
+SSL_connect:SSLv3/TLS read finished
+SSL_connect:SSLv3/TLS write change cipher spec
+SSL_connect:SSLv3/TLS write client certificate
+SSL_connect:SSLv3/TLS write certificate verify
+SSL_connect:SSLv3/TLS write finished
+---
+Certificate chain
+ 0 s:CN = *.apps.ocp.rober.lab
+   i:CN = ingress-operator@1636389644
+ 1 s:CN = ingress-operator@1636389644
+   i:CN = ingress-operator@1636389644
+---
+Server certificate
+-----BEGIN CERTIFICATE-----
+xxx
+-----END CERTIFICATE-----
+subject=CN = *.apps.ocp.rober.lab
+
+issuer=CN = ingress-operator@1636389644
+
+---
+Acceptable client certificate CA names
+CN = anubis.rober.lab, ST = Madrid, C = ES, O = None, OU = None
+Requested Signature Algorithms: xx
+Shared Requested Signature Algorithms: xxx
+Peer signing digest: SHA256
+Peer signature type: RSA-PSS
+Server Temp Key: X25519, 253 bits
+---
+SSL handshake has read 2368 bytes and written 3938 bytes
+Verification error: self signed certificate in certificate chain
+---
+New, TLSv1.3, Cipher is TLS_AES_128_GCM_SHA256
+Server public key is 2048 bit
+Secure Renegotiation IS NOT supported
+Compression: NONE
+Expansion: NONE
+No ALPN negotiated
+Early data was not sent
+Verify return code: 19 (self signed certificate in certificate chain)
+---
+SSL_connect:SSL negotiation finished successfully
+SSL_connect:SSL negotiation finished successfully
+---
+Post-Handshake New Session Ticket arrived:
+SSL-Session:
+    Protocol  : TLSv1.3
+    Cipher    : TLS_AES_128_GCM_SHA256
+    Session-ID: xx
+    Session-ID-ctx:
+    Resumption PSK: xx
+    PSK identity: None
+    PSK identity hint: None
+    SRP username: None
+    TLS session ticket lifetime hint: 7200 (seconds)
+    TLS session ticket:
+...
+    Start Time: 1636729192
+    Timeout   : 7200 (sec)
+    Verify return code: 19 (self signed certificate in certificate chain)
+    Extended master secret: no
+    Max Early Data: 0
+---
+SSL_connect:SSLv3/TLS read server session ticket
+read R BLOCK
+SSL_connect:SSL negotiation finished successfully
+SSL_connect:SSL negotiation finished successfully
+---
+Post-Handshake New Session Ticket arrived:
+SSL-Session:
+    Protocol  : TLSv1.3
+    Cipher    : TLS_AES_128_GCM_SHA256
+    Session-ID: xxx
+    Session-ID-ctx:
+    Resumption PSK: xxx
+    PSK identity: None
+    PSK identity hint: None
+    SRP username: None
+    TLS session ticket lifetime hint: 7200 (seconds)
+    TLS session ticket:
+...
+    Start Time: 1636729192
+    Timeout   : 7200 (sec)
+    Verify return code: 19 (self signed certificate in certificate chain)
+    Extended master secret: no
+    Max Early Data: 0
+---
+SSL_connect:SSLv3/TLS read server session ticket
+```
