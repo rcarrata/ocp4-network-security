@@ -181,9 +181,9 @@ Certificate Details:
             Netscape Comment:
                 OpenSSL Generated Client Certificate
             X509v3 Subject Key Identifier:
-                81:38:58:D3:93:D0:8A:69:12:12:95:54:63:E9:02:7B:82:17:4A:FE
+                xxx
             X509v3 Authority Key Identifier:
-                keyid:9F:65:8B:55:A9:A5:95:D6:62:1D:93:60:5E:54:98:88:AC:DC:13:0A
+                keyid:xxx
 
             X509v3 Key Usage: critical
                 Digital Signature, Non Repudiation, Key Encipherment
@@ -207,6 +207,7 @@ We can check the client certificate generated:
 
 ```sh
 openssl x509 -in certs/client.cert.pem -text -noout
+
 Certificate:
     Data:
         Version: 3 (0x2)
@@ -220,6 +221,7 @@ Certificate:
         Subject Public Key Info:
             Public Key Algorithm: rsaEncryption
                 RSA Public-Key: (4096 bit)
+...
 ```
 
 as we can see the certificate is signed by of our brand new CA cert as we can check in the Issuer.
@@ -255,7 +257,7 @@ openssl genrsa -out private/server.key.pem 4096
 APPS_DOMAIN=$(oc whoami --show-console | cut -f 2- -d '.')
 
 echo $APPS_DOMAIN
-apps.ocp2.rober.lab
+apps.ocp.rober.lab
 ```
 
 * Define the SUBJ SERVER used during the generation of the CSR & Cert.
@@ -266,7 +268,7 @@ SERVER_NAME=*.$APPS_DOMAIN
 SUBJ_SERVER="/CN=${SERVER_NAME}/ST=Madrid/C=ES/O=None/OU=None"
 
 echo $SUBJ_SERVER
-/CN=*.apps.ocp2.rober.lab/ST=Madrid/C=ES/O=None/OU=None
+/CN=*.apps.ocp.rober.lab/ST=Madrid/C=ES/O=None/OU=None
 ```
 
 
@@ -281,11 +283,12 @@ openssl req -new -subj ${SUBJ_SERVER} -key private/server.key.pem -out certs/ser
 
 ```sh
 openssl req -text -noout -verify -in certs/server.csr
+
 verify OK
 Certificate Request:
     Data:
         Version: 1 (0x0)
-        Subject: CN = *.apps.ocp2.rober.lab, ST = Madrid, C = ES, O = None, OU = None
+        Subject: CN = *.apps.ocp.rober.lab, ST = Madrid, C = ES, O = None, OU = None
         Subject Public Key Info:
             Public Key Algorithm: rsaEncryption
                 RSA Public-Key: (4096 bit)
@@ -297,7 +300,7 @@ Let's extract the IP of the LB of my Baremetal node where is virtualized with KV
 SERVER_IP=$(ip addr show eno1 | grep inet | head -n1 | awk '{ print $2 }' | cut -f 1 -d '/')
 
 echo $SERVER_IP
-10.1.8.13
+10.1.8.72
 ```
 
 * Add certificate extensions. Similar to client certificate, we will again add some extensions to our server certificate. Additionally we are adding Subject Alternative Name field also known as SAN. This is used to define multiple Common Name.
@@ -325,6 +328,7 @@ as you can see the SERVER_IP is the IP of my BM node where is allocated the Open
 
 ```sh
 openssl ca -config openssl.cnf -extfile server_ext.cnf -days 3650 -notext -batch -in certs/server.csr -out certs/server.cert.pem
+
 Using configuration from openssl.cnf
 Check that the request matches the signature
 Signature ok
@@ -338,7 +342,7 @@ Certificate Details:
             stateOrProvinceName       = Madrid
             organizationName          = None
             organizationalUnitName    = None
-            commonName                = *.apps.ocp2.rober.lab
+            commonName                = *.apps.ocp.rober.lab
         X509v3 extensions:
             X509v3 Basic Constraints:
                 CA:FALSE
@@ -358,7 +362,7 @@ Certificate Details:
             X509v3 Extended Key Usage:
                 TLS Web Server Authentication
             X509v3 Subject Alternative Name:
-                IP Address:10.1.8.13, DNS:mtls.apps.ocp2.rober.lab
+                IP Address:10.1.8.13, DNS:mtls.apps.ocp.rober.lab
 Certificate is to be certified until Nov 10 00:13:52 2031 GMT (3650 days)
 
 Write out database with 1 new entries
@@ -379,7 +383,7 @@ Certificate:
         Validity
             Not Before: Nov 12 00:13:52 2021 GMT
             Not After : Nov 10 00:13:52 2031 GMT
-        Subject: C = ES, ST = Madrid, O = None, OU = None, CN = *.apps.ocp2.rober.lab
+        Subject: C = ES, ST = Madrid, O = None, OU = None, CN = *.apps.ocp.rober.lab
 ...
                 Exponent: 65537 (0x10001)
         X509v3 extensions:
@@ -401,7 +405,7 @@ Certificate:
             X509v3 Extended Key Usage:
                 TLS Web Server Authentication
             X509v3 Subject Alternative Name:
-                IP Address:10.1.8.13, DNS:mtls.apps.ocp2.rober.lab
+                IP Address:10.1.8.13, DNS:mtls.apps.ocp.rober.lab
     Signature Algorithm: sha256WithRSAEncryption
 ```
 
@@ -421,14 +425,14 @@ rm -f index.*
 
 ## Test the OpenShift Ingress Controller without the mTLS enabled
 
-Before to enable the mTLS we need to ensure that we can reach properly the OpenShift ingress controller, and we will use the console url because have a secure route with TLS (reencrypt/Redirect): 
+Before to enable the mTLS we need to ensure that we can reach properly the OpenShift ingress controller, and we will use the console url because have a secure route with TLS (reencrypt/Redirect):
 
 ```sh
-curl -LIv https://console-openshift-console.apps.ocp2.rober.lab
-* Rebuilt URL to: https://console-openshift-console.apps.ocp2.rober.lab/
-*   Trying 192.168.126.51...
+ curl -LIv https://console-openshift-console.apps.ocp.rober.lab
+* Rebuilt URL to: https://console-openshift-console.apps.ocp.rober.lab/
+*   Trying 192.168.126.1...
 * TCP_NODELAY set
-* Connected to console-openshift-console.apps.ocp2.rober.lab (192.168.126.51) port 443 (#0)
+* Connected to console-openshift-console.apps.ocp.rober.lab (192.168.126.1) port 443 (#0)
 * ALPN, offering h2
 * ALPN, offering http/1.1
 * successfully set certificate verify locations:
@@ -447,18 +451,18 @@ curl -LIv https://console-openshift-console.apps.ocp2.rober.lab
 * TLSv1.3 (OUT), TLS change cipher, Change cipher spec (1):
 * TLSv1.3 (OUT), TLS handshake, [no content] (0):
 * TLSv1.3 (OUT), TLS handshake, Finished (20):
-* SSL connection using TLSv1.3 / TLS_AES_256_GCM_SHA384
+* SSL connection using TLSv1.3 / TLS_AES_128_GCM_SHA256
 * ALPN, server did not agree to a protocol
 * Server certificate:
-*  subject: CN=*.apps.ocp2.rober.lab
-*  start date: Nov 10 15:00:03 2021 GMT
-*  expire date: Nov 10 15:00:04 2023 GMT
-*  subjectAltName: host "console-openshift-console.apps.ocp2.rober.lab" matched cert's "*.apps.ocp2.rober.lab"
-*  issuer: CN=ingress-operator@1636556232
+*  subject: CN=*.apps.ocp.rober.lab
+*  start date: Nov  8 16:43:37 2021 GMT
+*  expire date: Nov  8 16:43:38 2023 GMT
+*  subjectAltName: host "console-openshift-console.apps.ocp.rober.lab" matched cert's "*.apps.ocp.rober.lab"
+*  issuer: CN=ingress-operator@1636389644
 *  SSL certificate verify ok.
 * TLSv1.3 (OUT), TLS app data, [no content] (0):
 > HEAD / HTTP/1.1
-> Host: console-openshift-console.apps.ocp2.rober.lab
+> Host: console-openshift-console.apps.ocp.rober.lab
 > User-Agent: curl/7.61.1
 > Accept: */*
 >
@@ -471,7 +475,7 @@ curl -LIv https://console-openshift-console.apps.ocp2.rober.lab
 HTTP/1.1 200 OK
 ```
 
-All seems ok, and the ingress-controller is presenting the default certificate with the wildcard *.apps.ocp2.rober that matches the FQDN of the console host url. 
+All seems ok, and the ingress-controller is presenting the default certificate with the wildcard *.apps.ocp.rober that matches the FQDN of the console host url.
 
 ## Create CA ConfigMap and enable the mTLS in the IngressController
 
@@ -483,8 +487,7 @@ The config map contains the PEM-encoded CA certificate bundle that is used to ve
 * Let's create a config map that is in the openshift-config namespace
 
 ```sh
-oc create configmap router-ca-certs-default --from-file=ca-bundle.pem=certs/cacert.pem -n opens
-hift-config
+oc create configmap router-ca-certs-default --from-file=ca-bundle.pem=certs/cacert.pem -n openshift-config
 
 configmap/router-ca-certs-default created
 ```
@@ -509,4 +512,100 @@ spec:
     allowedSubjectPatterns:
     - anubis.rober.lab
 ```
+
+* After edit the ingress operator we can see that the pods of the ingress / Haproxy are restarting:
+
+```sh
+oc get pod -n openshift-ingress -w
+NAME                              READY   STATUS        RESTARTS   AGE
+router-default-6f6dfb449d-ltlhv   1/1     Running       0          3d15h
+router-default-6f6dfb449d-r5p8z   1/1     Terminating   0          3d15h
+router-default-864d7f7f7-dfng2    1/1     Running       0          12s
+```
+
+* Let's check the changes in the default ingress-operator including the mtls ones:
+
+```sh
+oc get IngressController default -n openshift-ingress-operator -o jsonpath='{.spec}' | jq -r .
+{
+  "clientTLS": {
+    "allowedSubjectPatterns": [
+      "anubis.rober.lab"
+    ],
+    "clientCA": {
+      "name": "router-ca-certs-default"
+    },
+    "clientCertificatePolicy": "Required"
+  },
+  "httpEmptyRequestsPolicy": "Respond",
+  "httpErrorCodePages": {
+    "name": ""
+  },
+  "replicas": 2,
+  "tuningOptions": {},
+  "unsupportedConfigOverrides": null
+}
+```
+
+## Test the OpenShift Ingress Controller with mTLS enabled
+
+Now that we have the mTLS enabled in the ingress-controller, let's execute the exam curl as we used in the previous step:
+
+```sh
+curl -LIv https://console-openshift-console.apps.ocp.rober.lab
+* Rebuilt URL to: https://console-openshift-console.apps.ocp.rober.lab/
+*   Trying 192.168.126.1...
+* TCP_NODELAY set
+* Connected to console-openshift-console.apps.ocp.rober.lab (192.168.126.1) port 443 (#0)
+* ALPN, offering h2
+* ALPN, offering http/1.1
+* successfully set certificate verify locations:
+*   CAfile: /etc/pki/tls/certs/ca-bundle.crt
+  CApath: none
+* TLSv1.3 (OUT), TLS handshake, Client hello (1):
+* TLSv1.3 (IN), TLS handshake, Server hello (2):
+* TLSv1.3 (IN), TLS handshake, [no content] (0):
+* TLSv1.3 (IN), TLS handshake, Encrypted Extensions (8):
+* TLSv1.3 (IN), TLS handshake, [no content] (0):
+* TLSv1.3 (IN), TLS handshake, Request CERT (13):
+* TLSv1.3 (IN), TLS handshake, [no content] (0):
+* TLSv1.3 (IN), TLS handshake, Certificate (11):
+* TLSv1.3 (IN), TLS handshake, [no content] (0):
+* TLSv1.3 (IN), TLS handshake, CERT verify (15):
+* TLSv1.3 (IN), TLS handshake, [no content] (0):
+* TLSv1.3 (IN), TLS handshake, Finished (20):
+* TLSv1.3 (OUT), TLS change cipher, Change cipher spec (1):
+* TLSv1.3 (OUT), TLS handshake, [no content] (0):
+* TLSv1.3 (OUT), TLS handshake, Certificate (11):
+* TLSv1.3 (OUT), TLS handshake, [no content] (0):
+* TLSv1.3 (OUT), TLS handshake, Finished (20):
+* SSL connection using TLSv1.3 / TLS_AES_128_GCM_SHA256
+* ALPN, server did not agree to a protocol
+* Server certificate:
+*  subject: CN=*.apps.ocp.rober.lab
+*  start date: Nov  8 16:43:37 2021 GMT
+*  expire date: Nov  8 16:43:38 2023 GMT
+*  subjectAltName: host "console-openshift-console.apps.ocp.rober.lab" matched cert's "*.apps.ocp.rober.lab"
+*  issuer: CN=ingress-operator@1636389644
+*  SSL certificate verify ok.
+* TLSv1.3 (OUT), TLS app data, [no content] (0):
+> HEAD / HTTP/1.1
+> Host: console-openshift-console.apps.ocp.rober.lab
+> User-Agent: curl/7.61.1
+> Accept: */*
+>
+* TLSv1.3 (IN), TLS alert, [no content] (0):
+* TLSv1.3 (IN), TLS alert, unknown (628):
+* OpenSSL SSL_read: error:1409445C:SSL routines:ssl3_read_bytes:tlsv13 alert certificate required, errno 0
+* Closing connection 0
+curl: (56) OpenSSL SSL_read: error:1409445C:SSL routines:ssl3_read_bytes:tlsv13 alert certificate required, errno 0
+```
+
+As we can see the curl is not successful because raise an Openssl problem:
+
+```sh
+curl: (56) OpenSSL SSL_read: error:1409445C:SSL routines:ssl3_read_bytes:tlsv13 alert certificate required, errno 0
+```
+
+as we expected the client certificate is requested by the Ingress pods, because it's configured in the ingress controller.
 
