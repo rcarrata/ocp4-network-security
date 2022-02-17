@@ -90,7 +90,7 @@ NAME                 READY   UP-TO-DATE   AVAILABLE   AGE
 pipelines-vote-api   1/1     1            1           29h
 ```
 
-<img align="center" width="470" src="assets/signed-1.png">
+<img align="center" width="570" src="assets/signed-1.png">
 
 ## Run Unsigned Pipeline
 
@@ -102,8 +102,8 @@ kubectl create -f run/unsigned-images-pipelinerun.yaml
 
 * The pipeline will fail because, in the last step the pipeline will try to deploy the image, and the Kyverno Cluster Policy will deny the request because it's not signed with the cosign step using the same private key as the pipeline before:
 
-<img align="center" width="470" src="assets/unsigned-1.png">
+<img align="center" width="970" src="assets/unsigned-1.png">
 
 * As we can see the error that the pipeline outputs it's due to the Kyverno Cluster Policy with the image signature mismatch error:
 
-<img align="center" width="470" src="assets/unsigned-2.png">
+<img align="center" width="570" src="assets/unsigned-2.png">
