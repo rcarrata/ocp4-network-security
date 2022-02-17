@@ -1,0 +1,28 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: update-deployment
+spec:
+  params:
+    - description: The name of the deployment patch the image
+      name: deployment
+      type: string
+    - description: Location of image to be patched with
+      name: IMAGE
+      type: string
+  steps:
+    - args:
+        - >-
+          oc patch deployment $(inputs.params.deployment)
+          --patch='{"spec":{"template":{"spec":{
+            "containers":[{
+              "name": "$(inputs.params.deployment)",
+              "image":"$(inputs.params.IMAGE)"
+            }]
+          }}}}'
+      command:
+        - /bin/bash
+        - '-c'
+      image: 'image-registry.openshift-image-registry.svc:5000/openshift/cli:latest'
+      name: patch
+      resources: {}

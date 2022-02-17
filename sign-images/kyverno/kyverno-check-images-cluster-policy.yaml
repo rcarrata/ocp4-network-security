@@ -1,0 +1,23 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: check-image
+spec:
+  validationFailureAction: enforce
+  background: false
+  webhookTimeoutSeconds: 30
+  failurePolicy: Fail
+  rules:
+    - name: check-image
+      match:
+        any:
+        - resources:
+            kinds:
+              - Pod
+      verifyImages:
+      - image: "ghcr.io/rcarrata/pipelines-vote-api:*"
+        key: |-
+          -----BEGIN PUBLIC KEY-----
+          MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEo31F9RmEeZHCQexbv0vUyIKuFHXR
+          YM3Brq4nDqKQ3/3YRsAHgXeNOWZwemOnoZCJOkjDlM4CzkcrmGUCT7dmpw==
+          -----END PUBLIC KEY-----

@@ -1,0 +1,85 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: build-and-deploy-unsigned
+spec:
+  params:
+    - description: name of the deployment to be patched
+      name: deployment-name
+      type: string
+    - description: url of the git repo for the code of deployment
+      name: git-url
+      type: string
+    - default: master
+      description: revision to be used from repo of the code for deployment
+      name: git-revision
+      type: string
+    - description: image to be build from the code
+      name: IMAGE
+      type: string
+    - default: workshop
+      description: Namespace where the Tekton project is installed by the release
+      name: namespace
+      type: string
+  tasks:
+    - name: fetch-repository
+      params:
+        - name: url
+          value: $(params.git-url)
+        - name: deleteExisting
+          value: 'true'
+        - name: revision
+          value: $(params.git-revision)
+      taskRef:
+        kind: ClusterTask
+        name: git-clone
+      workspaces:
+        - name: output
+          workspace: shared-workspace
+    - name: apply-manifests
+      runAfter:
+        - buildah-custom
+      taskRef:
+        kind: Task
+        name: apply-manifests
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+    - name: update-deployment
+      params:
+        - name: deployment
+          value: $(params.deployment-name)
+        - name: IMAGE
+          value: $(params.IMAGE)
+      runAfter:
+        - apply-manifests
+      taskRef:
+        kind: Task
+        name: update-deployment
+    - name: buildah-custom
+      params:
+        - name: IMAGE
+          value: $(params.IMAGE)
+        - name: BUILDER_IMAGE
+          value: >-
+            registry.redhat.io/rhel8/buildah@sha256:e19cf23d5f1e0608f5a897f0a50448beb9f8387031cca49c7487ec71bd91c4d3
+        - name: STORAGE_DRIVER
+          value: vfs
+        - name: DOCKERFILE
+          value: ./Dockerfile
+        - name: CONTEXT
+          value: .
+        - name: TLSVERIFY
+          value: 'true'
+        - name: FORMAT
+          value: oci
+      runAfter:
+        - fetch-repository
+      taskRef:
+        kind: ClusterTask
+        name: buildah-custom
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+  workspaces:
+    - name: shared-workspace
