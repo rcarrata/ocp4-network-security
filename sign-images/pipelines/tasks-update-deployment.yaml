@@ -13,7 +13,7 @@ spec:
   steps:
     - args:
         - >-
-          oc patch deployment $(inputs.params.deployment)
+          kubectl patch deployment $(inputs.params.deployment)
           --patch='{"spec":{"template":{"spec":{
             "containers":[{
               "name": "$(inputs.params.deployment)",
