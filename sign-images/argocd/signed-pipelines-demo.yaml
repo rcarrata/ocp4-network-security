@@ -18,3 +18,12 @@ spec:
       selfHeal: true
     syncOptions:
     - CreateNamespace=true
+  ignoreDifferences:
+  - group: kyverno.io
+    kind: ClusterPolicy
+    jsonPointers:
+    - /spec/rules
+  - group: kyverno.io
+    kind: Policy
+    jsonPointers:
+    - /spec/rules
