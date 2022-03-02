@@ -11,3 +11,4 @@ resources:
 - tasks-apply-manifests.yaml
 - tasks-cosign.yaml
 - tasks-update-deployment.yaml
+- kyverno-check-images-cluster-policy.yaml

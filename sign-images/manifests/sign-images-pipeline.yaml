@@ -36,26 +36,6 @@ spec:
       workspaces:
         - name: output
           workspace: shared-workspace
-    - name: apply-manifests
-      runAfter:
-        - sign-image
-      taskRef:
-        kind: Task
-        name: apply-manifests
-      workspaces:
-        - name: source
-          workspace: shared-workspace
-    - name: update-deployment
-      params:
-        - name: deployment
-          value: $(params.deployment-name)
-        - name: IMAGE
-          value: $(params.IMAGE)
-      runAfter:
-        - apply-manifests
-      taskRef:
-        kind: Task
-        name: update-deployment
     - name: buildah-custom
       params:
         - name: IMAGE
@@ -97,5 +77,25 @@ spec:
       workspaces:
         - name: source
           workspace: shared-workspace
+    - name: apply-manifests
+      runAfter:
+        - sign-image
+      taskRef:
+        kind: Task
+        name: apply-manifests
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+    - name: update-deployment
+      params:
+        - name: deployment
+          value: $(params.deployment-name)
+        - name: IMAGE
+          value: $(params.IMAGE)
+      runAfter:
+        - apply-manifests
+      taskRef:
+        kind: Task
+        name: update-deployment
   workspaces:
     - name: shared-workspace
