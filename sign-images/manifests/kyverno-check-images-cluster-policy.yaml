@@ -4,6 +4,7 @@ metadata:
   name: check-image
   annotations:
     argocd.argoproj.io/compare-options: IgnoreExtraneous
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   validationFailureAction: enforce
   background: false
