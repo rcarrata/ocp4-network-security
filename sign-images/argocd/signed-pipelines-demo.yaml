@@ -10,7 +10,7 @@ spec:
   project: default
   source:
     path: sign-images/manifests/
-    repoURL: https://github.com/RedHat-EMEA-SSA-Team/ns-gitops/
+    repoURL: https://github.com/rcarrata/ocp4-network-security
     targetRevision: main
   syncPolicy:
     automated:

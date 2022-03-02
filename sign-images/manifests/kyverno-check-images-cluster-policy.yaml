@@ -2,6 +2,8 @@ apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
   name: check-image
+  annotations:
+    argocd.argoproj.io/compare-options: IgnoreExtraneous
 spec:
   validationFailureAction: enforce
   background: false
