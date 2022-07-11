@@ -107,3 +107,7 @@ kubectl create -f run/unsigned-images-pipelinerun.yaml
 * As we can see the error that the pipeline outputs it's due to the Kyverno Cluster Policy with the image signature mismatch error:
 
 <img align="center" width="570" src="assets/unsigned-2.png">
+
+## TSHOOT
+
+* [Using Argo to deploy, baseline policies are constantly out-of-sync](https://github.com/kyverno/kyverno/issues/2234)
