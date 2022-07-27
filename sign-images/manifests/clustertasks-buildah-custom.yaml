@@ -84,7 +84,7 @@ spec:
         - mountPath: /var/lib/containers
           name: varlibcontainers
         - mountPath: /etc/secret-volume
-          name: ghcr-auth-secret
+          name: regcred
           readOnly: true
       workingDir: $(workspaces.source.path)
     - image: $(params.BUILDER_IMAGE)
@@ -96,7 +96,7 @@ spec:
   volumes:
     - emptyDir: {}
       name: varlibcontainers
-    - name: ghcr-auth-secret
+    - name: regcred
       secret:
         items:
           - key: .dockerconfigjson

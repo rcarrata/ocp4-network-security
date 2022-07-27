@@ -8,37 +8,51 @@
 kubectl apply -f bootstrap/openshift-pipelines-operator-subscription.yaml
 ```
 
-* Install Kyverno though Helm:
+## Testing Cosign
 
-```bash
-helm repo add kyverno https://kyverno.github.io/kyverno/
-helm repo update
-helm install kyverno --namespace kyverno kyverno/kyverno --create-namespace
+```
+podman pull quay.io/centos7/httpd-24-centos7:20220713
+podman tag quay.io/centos7/httpd-24-centos7:20220713 ghcr.io/${USERNAME}/centos7/httpd-24-centos7:0.1
+podman push  ghcr.io/${USERNAME}/httpd-24-centos7:0.1
+
+cosign sign --key cosign.key ghcr.io/${USERNAME}/httpd-24-centos7:0.1
+
+cosign verify --key cosign.pub ghcr.io/${USERNAME}/httpd-24-centos7:0.1
 ```
 
-* Check that Kyverno pods are Running state:
+## Quay.io Repository Setup
 
-```bash
-kubectl get pod -n kyverno
-NAME                      READY   STATUS    RESTARTS   AGE
-kyverno-55f86d8cd-69pzv   1/1     Running   0          2m3s
-```
+* Add a Public Quay Repository
+* Add Robot Account and assign Write or Admin permissions to this Quay Repository
+* Grab the QUAY_TOKEN and the USERNAME that is provided
+
+* http://docs.quay.io/issues/no-create-permission.html
+* https://jaland.github.io/tekton/2021/01/26/tekton-openshift.html
+* http://docs.quay.io/guides/repo-permissions.html
 
 ## Deploy Tekton Pipeline and Tasks
 
 * Export the token for the GitHub Registry / ghcr.io:
 
 ```bash
-export PAT_TOKEN="xxx"
+export QUAY_TOKEN=""
 export EMAIL="xxx"
-export USERNAME="rcarrata"
-export NAMESPACE="workshop"
+export USERNAME="rcarrata+acs_integration"
+export NAMESPACE="demo-sign"
 ```
 
 * Generate a docker-registry secret with the credentials for GitHub Registry to push/pull the images and signatures:
 
 ```bash
-kubectl create secret docker-registry ghcr-auth-secret --docker-server=ghcr.io --docker-username=${USERNAME} --docker-email=${EMAIL}--docker-password=${PAT_TOKEN} -n ${NAMESPACE}
+kubectl create secret docker-registry regcred --docker-server=quay.io --docker-username=${USERNAME} --docker-email=${EMAIL}--docker-password=${QUAY_TOKEN} -n ${NAMESPACE}
+```
+
+* Add the imagePullSecret to the ServiceAccount “pipeline” in the namespace of the demo:
+
+```
+export SERVICE_ACCOUNT_NAME=pipeline
+kubectl patch serviceaccount $SERVICE_ACCOUNT_NAME \
+ -p "{\"imagePullSecrets\": [{\"name\": \"regcred\"}]}" -n $NAMESPACE
 ```
 
 * Deploy all the Tekton Tasks and Pipelines for run this demo:
@@ -56,23 +70,18 @@ export COSIGN_PASSWORD=redhat
 cosign generate-key-pair k8s://${NAMESPACE}/cosign
 ```
 
-* Generate a docker-registry secret with the credentials for GitHub Registry to allow the Kyverno to download the signature from GitHub registry in order to verify the image:
+## Generate API Token within Stackrox
 
-```bash
-kubectl create secret docker-registry regcred --docker-server=ghcr.io --docker-username=${USERNAME} --docker-email=${EMAIL}--docker-password=${PAT_TOKEN} -n kyverno
+* https://docs.openshift.com/acs/3.70/integration/integrate-with-ci-systems.html#cli-authentication_integrate-with-ci-systems
+
+```
+export ROX_API_TOKEN="xxx"
+roxctl --insecure-skip-tls-verify image check --endpoint central-stackrox.apps.ocp4.rcarrata.com:443 --image quay.io/centos7/httpd-24-centos7:centos7
 ```
 
-* Update the kyverno imagepullsecrets to include the registry creds:
+## Add Signature Integration within ACS
 
-```bash
-kubectl get deploy kyverno -n kyverno -o yaml | grep containers -A5
-      containers:
-      - args:
-        - --imagePullSecrets=regcred
-        env:
-        - name: INIT_CONFIG
-          value: kyverno
-```
+* https://docs.openshift.com/acs/3.70/integration/integrate-with-ci-systems.html#cli-authentication_integrate-with-ci-systems
 
 ## Run Signed Pipeline
 

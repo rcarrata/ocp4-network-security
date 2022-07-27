@@ -2,7 +2,7 @@ apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
   generateName: build-and-deploy-unsigned
-  namespace: workshop
+  namespace: demo-sign
   labels:
     tekton.dev/pipeline: build-and-deploy-unsigned
 spec:
@@ -16,7 +16,7 @@ spec:
     - name: IMAGE
       value: 'ghcr.io/rcarrata/pipelines-vote-api:unsigned'
     - name: namespace
-      value: workshop
+      value: demo-sign
   pipelineRef:
     name: build-and-deploy-unsigned
   serviceAccountName: pipeline

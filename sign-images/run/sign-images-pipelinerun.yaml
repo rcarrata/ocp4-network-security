@@ -2,7 +2,7 @@ apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
   generateName: build-and-deploy-signed
-  namespace: workshop
+  namespace: demo-sign
   labels:
     tekton.dev/pipeline: build-and-deploy-signed
 spec:
@@ -14,9 +14,9 @@ spec:
     - name: git-revision
       value: master
     - name: IMAGE
-      value: 'ghcr.io/rcarrata/pipelines-vote-api:v2'
+      value: 'quay.io/rcarrata/pipelines-vote-api:v2'
     - name: namespace
-      value: workshop
+      value: demo-sign
   pipelineRef:
     name: build-and-deploy-signed
   serviceAccountName: pipeline
