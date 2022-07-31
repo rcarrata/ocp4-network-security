@@ -169,6 +169,8 @@ pipelines-vote-api   1/1     1            1           29h
 
 <img align="center" width="570" src="assets/signed-1.png">
 
+<img align="center" width="570" src="assets/signed-2.png">
+
 ## Run Unsigned Pipeline
 
 * Run the pipeline for build the image and push to the GitHub registry, but this time without sign with cosign private key:
@@ -179,7 +181,7 @@ kubectl create -f run/unsigned-images-pipelinerun.yaml
 
 * TODO
 
-<img align="center" width="970" src="assets/unsigned-1.png">
+<img align="center" width="570" src="assets/unsigned-1.png">
 
 * TODO
 
