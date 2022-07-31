@@ -10,4 +10,5 @@ resources:
 - unsigned-images-pipeline.yaml
 - tasks-apply-manifests.yaml
 - tasks-cosign.yaml
+- tasks-image-check.yaml
 - tasks-update-deployment.yaml

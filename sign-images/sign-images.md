@@ -15,9 +15,9 @@ podman pull quay.io/centos7/httpd-24-centos7:20220713
 podman tag quay.io/centos7/httpd-24-centos7:20220713 ghcr.io/${USERNAME}/centos7/httpd-24-centos7:0.1
 podman push  ghcr.io/${USERNAME}/httpd-24-centos7:0.1
 
-cosign sign --key cosign.key ghcr.io/${USERNAME}/httpd-24-centos7:0.1
+cosign sign --key cosign.key quay.io/${USERNAME}/httpd-24-centos7:0.1
 
-cosign verify --key cosign.pub ghcr.io/${USERNAME}/httpd-24-centos7:0.1
+cosign verify --key cosign.pub quay.io/${USERNAME}/httpd-24-centos7:0.1
 ```
 
 ## Quay.io Repository Setup
@@ -32,7 +32,7 @@ cosign verify --key cosign.pub ghcr.io/${USERNAME}/httpd-24-centos7:0.1
 
 ## Deploy Tekton Pipeline and Tasks
 
-* Export the token for the GitHub Registry / ghcr.io:
+* Export the token for the GitHub Registry / quay.io:
 
 ```bash
 export QUAY_TOKEN=""
@@ -53,12 +53,15 @@ kubectl create secret docker-registry regcred --docker-server=quay.io --docker-u
 export SERVICE_ACCOUNT_NAME=pipeline
 kubectl patch serviceaccount $SERVICE_ACCOUNT_NAME \
  -p "{\"imagePullSecrets\": [{\"name\": \"regcred\"}]}" -n $NAMESPACE
+
+oc secrets link pipeline regcred -n demo-sign
+oc secrets link default regcred -n demo-sign
 ```
 
 * Deploy all the Tekton Tasks and Pipelines for run this demo:
 
 ```bash
-kubectl apply -k pipelines/
+kubectl apply -k manifests/
 ```
 
 ## Generate Sigstore KeyPairs
@@ -68,11 +71,15 @@ kubectl apply -k pipelines/
 ```bash
 export COSIGN_PASSWORD=redhat
 cosign generate-key-pair k8s://${NAMESPACE}/cosign
+
+kubectl get secret -n demo-sign cosign -o jsonpath="{.data.cosign\.key}" | base64 -d >> cosign.key
 ```
 
 ## Generate API Token within Stackrox
 
 * https://docs.openshift.com/acs/3.70/integration/integrate-with-ci-systems.html#cli-authentication_integrate-with-ci-systems
+
+- Platform Configuration → Integrations → Authentication Tokens → API Token
 
 ```
 export ROX_API_TOKEN="xxx"
@@ -81,7 +88,68 @@ roxctl --insecure-skip-tls-verify image check --endpoint central-stackrox.apps.o
 
 ## Add Signature Integration within ACS
 
-* https://docs.openshift.com/acs/3.70/integration/integrate-with-ci-systems.html#cli-authentication_integrate-with-ci-systems
+* https://docs.openshift.com/acs/3.70/operating/verify-image-signatures.html#configure-signature-integration_verify-image-signatures
+
+```
+https://central-stackrox.apps.xxx.xxx.com/main/integrations/signatureIntegrations/signature/create
+```
+
+- Platform Configuration → Integrations -> Signature Integrations -> Integrate:
+
+* signature_verification
+* cosign_pubkey
+* xxx
+
+## Add Policy Image Signature Verification
+
+* To Upload with the ACS API:
+
+```
+https://{{ acs_url }}/v1/policies/import
+```
+
+* Create the ACS Policy with:
+
+https://docs.openshift.com/acs/3.70/operating/manage-security-policies.html#create-policy-from-system-policies-view_manage-security-policies
+
+* Check with the command:
+
+```
+roxctl --insecure-skip-tls-verify image check --endpoint central-stackrox.apps.ocp4.rcarrata.com:443 --image quay.io/centos7/httpd-24-centos7:centos7
+```
+
+## Integrate and configure Quay.io registry into ACS
+
+* For Quay.io use the Generic Docker Integration:
+
+* https://docs.openshift.com/acs/3.70/integration/integrate-with-image-registries.html#manual-configuration-image-registry-ocp_integrate-with-image-registries
+
+## Create API Token for Tekton Pipeline to integrate in ACS
+
+* https://docs.openshift.com/acs/3.70/cli/getting-started-cli.html#cli-authentication_cli-getting-started
+
+- Platform Configuration -> Integrations -> Authentication Tokens -> API Token
+
+* TODO: Check the output of the rox_api_token and the central endpoint:
+
+```
+ROX_API_PIPELINE="xxx"
+ROX_HOST=$(kubectl get route -n stackrox central -o jsonpath='{.spec.host}':443)
+
+cat > /tmp/roxsecret.yaml << EOF
+apiVersion: v1
+data:
+  rox_api_token: $(echo $ROX_API_PIPELINE | base64 -w0)
+  rox_central_endpoint: $(echo $ROX_HOST)
+kind: Secret
+metadata:
+  name: roxsecrets
+  namespace: ${NAMESPACE}
+type: Opaque
+EOF
+
+kubectl apply -f /tmp/roxsecret.yaml
+```
 
 ## Run Signed Pipeline
 
@@ -109,11 +177,15 @@ pipelines-vote-api   1/1     1            1           29h
 kubectl create -f run/unsigned-images-pipelinerun.yaml
 ```
 
-* The pipeline will fail because, in the last step the pipeline will try to deploy the image, and the Kyverno Cluster Policy will deny the request because it's not signed with the cosign step using the same private key as the pipeline before:
+* TODO
 
 <img align="center" width="970" src="assets/unsigned-1.png">
 
-* As we can see the error that the pipeline outputs it's due to the Kyverno Cluster Policy with the image signature mismatch error:
+* TODO
+
+<img align="center" width="570" src="assets/unsigned-2.png">
+
+* TODO
 
 <img align="center" width="570" src="assets/unsigned-2.png">
 

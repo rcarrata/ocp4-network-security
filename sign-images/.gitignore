@@ -1,2 +1,5 @@
 pki/cosign.key
 pki/cosign.pub
+pki/*
+pki/*.key
+pki/*.pub

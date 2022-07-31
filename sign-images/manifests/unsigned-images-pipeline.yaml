@@ -36,26 +36,6 @@ spec:
       workspaces:
         - name: output
           workspace: shared-workspace
-    - name: apply-manifests
-      runAfter:
-        - buildah-custom
-      taskRef:
-        kind: Task
-        name: apply-manifests
-      workspaces:
-        - name: source
-          workspace: shared-workspace
-    - name: update-deployment
-      params:
-        - name: deployment
-          value: $(params.deployment-name)
-        - name: IMAGE
-          value: $(params.IMAGE)
-      runAfter:
-        - apply-manifests
-      taskRef:
-        kind: Task
-        name: update-deployment
     - name: buildah-custom
       params:
         - name: IMAGE
@@ -81,5 +61,41 @@ spec:
       workspaces:
         - name: source
           workspace: shared-workspace
+    - name: check-image
+      params:
+        - name: rox_api_token
+          value: roxsecrets
+        - name: rox_central_endpoint
+          value: roxsecrets
+        - name: image
+          value: $(params.IMAGE)
+      runAfter:
+        - buildah-custom
+      taskRef:
+        kind: Task
+        name: rox-image-check
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+    - name: apply-manifests
+      runAfter:
+        - check-image
+      taskRef:
+        kind: Task
+        name: apply-manifests
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+    - name: update-deployment
+      params:
+        - name: deployment
+          value: $(params.deployment-name)
+        - name: IMAGE
+          value: $(params.IMAGE)
+      runAfter:
+        - apply-manifests
+      taskRef:
+        kind: Task
+        name: update-deployment
   workspaces:
     - name: shared-workspace

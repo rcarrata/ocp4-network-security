@@ -33,9 +33,9 @@ spec:
         CMD="cosign sign --key k8s://$(params.namespace)/$(params.cosignkey) $(params.image)"
 
         echo "${CMD}"
-        
+
         ERR_MSG="Failed to sign $(params.image)"
-        
+
         ${CMD} &> result
 
         err=$?

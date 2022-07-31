@@ -14,7 +14,7 @@ spec:
     - name: git-revision
       value: master
     - name: IMAGE
-      value: 'quay.io/rcarrata/pipelines-vote-api:v2'
+      value: 'quay.io/rcarrata/pipelines-vote-api:v3'
     - name: namespace
       value: demo-sign
   pipelineRef:

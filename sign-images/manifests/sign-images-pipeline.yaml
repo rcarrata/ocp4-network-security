@@ -61,25 +61,41 @@ spec:
       workspaces:
         - name: source
           workspace: shared-workspace
-#    - name: sign-image
-#      params:
-#        - name: image
-#          value: $(params.IMAGE)
-#        - name: namespace
-#          value: $(params.namespace)
-#        - name: cosignkey
-#          value: cosign
-#      runAfter:
-#        - buildah-custom
-#      taskRef:
-#        kind: Task
-#        name: cosign
-#      workspaces:
-#        - name: source
-#          workspace: shared-workspace
-    - name: apply-manifests
+    - name: sign-image
+      params:
+        - name: image
+          value: $(params.IMAGE)
+        - name: namespace
+          value: $(params.namespace)
+        - name: cosignkey
+          value: cosign
       runAfter:
         - buildah-custom
+      taskRef:
+        kind: Task
+        name: cosign
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+    - name: check-image
+      params:
+        - name: rox_api_token
+          value: roxsecrets
+        - name: rox_central_endpoint
+          value: roxsecrets
+        - name: image
+          value: $(params.IMAGE)
+      runAfter:
+        - sign-image
+      taskRef:
+        kind: Task
+        name: rox-image-check
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+    - name: apply-manifests
+      runAfter:
+        - check-image
       taskRef:
         kind: Task
         name: apply-manifests
