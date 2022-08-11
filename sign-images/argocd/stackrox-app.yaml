@@ -1,21 +1,21 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: kyverno
+  name: stackrox-app
   namespace: openshift-gitops
 spec:
   destination:
-    namespace: kyverno
+    namespace: openshift-gitops
     server: https://kubernetes.default.svc
   project: default
   source:
-    helm:
-    chart: kyverno
-    repoURL: https://kyverno.github.io/kyverno/
-    targetRevision: v2.3.1
+    path: apps/acs
+    repoURL: https://github.com/rcarrata/acs-gitops
+    targetRevision: develop
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
     - CreateNamespace=true
+    - PruneLast=true

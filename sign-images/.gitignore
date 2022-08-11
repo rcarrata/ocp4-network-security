@@ -3,3 +3,4 @@ pki/cosign.pub
 pki/*
 pki/*.key
 pki/*.pub
+sigstore/pki/*.pub

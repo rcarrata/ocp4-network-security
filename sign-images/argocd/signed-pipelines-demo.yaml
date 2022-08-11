@@ -1,29 +1,20 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: signed-pipelines-demo
+  name: signed-pipelines-app
   namespace: openshift-gitops
 spec:
   destination:
-    namespace: workshop
+    namespace: demo-sign
     server: https://kubernetes.default.svc
   project: default
   source:
-    path: sign-images/manifests/
+    path: manifests/
     repoURL: https://github.com/rcarrata/ocp4-network-security
-    targetRevision: main
+    targetRevision: sign-acs
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
     - CreateNamespace=true
-  ignoreDifferences:
-  - group: kyverno.io
-    kind: ClusterPolicy
-    jsonPointers:
-    - /spec/rules
-  - group: kyverno.io
-    kind: Policy
-    jsonPointers:
-    - /spec/rules

@@ -1,4 +1,4 @@
-# Sign Images with Sigstore
+# Sign Images with Stackrox and Sigstore
 
 ## Install OpenShift GitOps and OpenShift Pipelines
 
