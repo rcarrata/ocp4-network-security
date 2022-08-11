@@ -168,6 +168,33 @@ ERROR:  checking image failed after 3 retries: failed policies found: 1 policies
 
 NOTE: For further information check the [ACS Integration with CI Systems](https://docs.openshift.com/acs/3.70/integration/integrate-with-ci-systems.html#cli-authentication_integrate-with-ci-systems)
 
+## Create ACS API Token Secrets for Tekton Pipeline to integrate in ACS
+
+* To be able to authenticate from the Tekton Pipelines towards the Stackrox / ACS API, the roxctl tasks used in the pipelines needs to have both ROX_API_TOKEN (generated in one step before) and the ACS Route as well:
+
+```
+echo $ROX_API_TOKEN
+echo $ACS_ROUTE
+
+cat > /tmp/roxsecret.yaml << EOF
+apiVersion: v1
+data:
+  rox_api_token: "$(echo $ROX_API_TOKEN | tr -d '\n' | base64 -w 0)"
+  rox_central_endpoint: "$(echo $ACS_ROUTE:443 | tr -d '\n' | base64 -w 0)"
+kind: Secret
+metadata:
+  name: roxsecrets
+  namespace: ${NAMESPACE}
+type: Opaque
+EOF
+
+kubectl apply -f /tmp/roxsecret.yaml
+```
+
+TODO: check the -w0 because base64 adds one new line
+
+* Check the [roxctl cli docs](https://docs.openshift.com/acs/3.70/cli/getting-started-cli.html#cli-authentication_cli-getting-started) for more information.
+
 ## Add Signature Integration within Stackrox/ACS
 
 * Add the Cosign signature into the Stackrox / ACS integrations. Go to Integrations, Signature, New Integration and add the following:
@@ -213,36 +240,11 @@ Now the new policy is generating an alert in our Stackrox / ACS cluster, checkin
 
 ## Integrate and configure Quay.io registry into ACS
 
-* For Quay.io use the Generic Docker Integration:
+* For Quay.io use the Generic Docker Integration integration to add Quay registry credentials into Stackrox / ACS:
 
-* https://docs.openshift.com/acs/3.70/integration/integrate-with-image-registries.html#manual-configuration-image-registry-ocp_integrate-with-image-registries
+<img align="center" width="550" src="assets/quay4.png">
 
-## Create API Token for Tekton Pipeline to integrate in ACS
-
-* https://docs.openshift.com/acs/3.70/cli/getting-started-cli.html#cli-authentication_cli-getting-started
-
-- Platform Configuration -> Integrations -> Authentication Tokens -> API Token
-
-* TODO: Check the output of the rox_api_token and the central endpoint:
-
-```
-ROX_API_PIPELINE="xxx"
-ROX_HOST=$(kubectl get route -n stackrox central -o jsonpath='{.spec.host}':443)
-
-cat > /tmp/roxsecret.yaml << EOF
-apiVersion: v1
-data:
-  rox_api_token: $(echo $ROX_API_PIPELINE | base64 -w0)
-  rox_central_endpoint: $(echo $ROX_HOST)
-kind: Secret
-metadata:
-  name: roxsecrets
-  namespace: ${NAMESPACE}
-type: Opaque
-EOF
-
-kubectl apply -f /tmp/roxsecret.yaml
-```
+* For more information around integrate Image Registries such as Quay into ACS check the [Integration with Image Registries guide](https://docs.openshift.com/acs/3.70/integration/integrate-with-image-registries.html#manual-configuration-image-registry-ocp_integrate-with-image-registries) in ACS docs.
 
 ## Run Signed Pipeline
 
@@ -260,9 +262,9 @@ NAME                 READY   UP-TO-DATE   AVAILABLE   AGE
 pipelines-vote-api   1/1     1            1           29h
 ```
 
-<img align="center" width="570" src="assets/signed-1.png">
+<img align="center" width="770" src="assets/signed-1.png">
 
-<img align="center" width="570" src="assets/signed-2.png">
+<img align="center" width="870" src="assets/signed-2.png">
 
 ## Run Unsigned Pipeline
 
@@ -282,11 +284,5 @@ kubectl create -f run/unsigned-images-pipelinerun.yaml
 
 * TODO
 
-<img align="center" width="570" src="assets/unsigned-2.png">
-
-## TSHOOT
-
-* [Using Argo to deploy, baseline policies are constantly out-of-sync](https://github.com/kyverno/kyverno/issues/2234)
-
-
+<img align="center" width="570" src="assets/unsigned-3.png">
 
