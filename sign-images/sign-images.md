@@ -19,20 +19,18 @@ curl -ks -o /dev/null -w "%{http_code}" https://$ARGOCD_ROUTE
 
 * Add a Public Quay Repository in Quay.io (I've used pipelines-vote-api repository):
 
-<img align="center" width="450" src="assets/quay1.png">
+<img align="center" width="650" src="assets/quay1.png">
 
 * In Settings, Add Robot Account and assign Write or Admin permissions to this Quay Repository
 
-<img align="center" width="450" src="assets/quay2.png">
+<img align="center" width="650" src="assets/quay2.png">
 
-* Grab the QUAY_TOKEN and the USERNAME that is provided
+* Grab the QUAY_TOKEN and the USERNAME that is provided:
 
+```
 USERNAME=<Robot_Account_Username>
 QUAY_TOKEN=<Robot_Account_Token>
-
-* http://docs.quay.io/issues/no-create-permission.html
-* https://jaland.github.io/tekton/2021/01/26/tekton-openshift.html
-* http://docs.quay.io/guides/repo-permissions.html
+```
 
 ## Testing Cosign (Optional)
 
@@ -242,7 +240,7 @@ Now the new policy is generating an alert in our Stackrox / ACS cluster, checkin
 
 * For Quay.io use the Generic Docker Integration integration to add Quay registry credentials into Stackrox / ACS:
 
-<img align="center" width="550" src="assets/quay4.png">
+<img align="center" width="350" src="assets/quay4.png">
 
 * For more information around integrate Image Registries such as Quay into ACS check the [Integration with Image Registries guide](https://docs.openshift.com/acs/3.70/integration/integrate-with-image-registries.html#manual-configuration-image-registry-ocp_integrate-with-image-registries) in ACS docs.
 
@@ -262,7 +260,17 @@ NAME                 READY   UP-TO-DATE   AVAILABLE   AGE
 pipelines-vote-api   1/1     1            1           29h
 ```
 
+* The steps will be as depicted below:
+
 <img align="center" width="770" src="assets/signed-1.png">
+
+- Clone Repository
+- Build Image and Push to Quay
+- Sign the image with the Cosign Private Key and push the signature the Quay
+- Deploy the k8s deployment for the application
+- Update the k8s deployment for the application with the signed image
+
+* Check in Quay that effectively the image is signed properly as you can check in the signature:
 
 <img align="center" width="870" src="assets/signed-2.png">
 
@@ -274,15 +282,20 @@ pipelines-vote-api   1/1     1            1           29h
 kubectl create -f run/unsigned-images-pipelinerun.yaml
 ```
 
-* TODO
+* The pipeline will fail because will detect that a unsigned image is used for the deployment:
 
 <img align="center" width="570" src="assets/unsigned-1.png">
 
-* TODO
+* As we can see in the logs, the step of check-image failed, because Stackrox / ACS policy blocked the pipeline due to a policy failure (enforced by the Trusted Signature Image Policy).
 
-<img align="center" width="570" src="assets/unsigned-2.png">
+<img align="center" width="770" src="assets/unsigned-2.png">
 
-* TODO
+* As you can check in the pipeline we have the full output of the image check with the rationale of the policy violation:
 
-<img align="center" width="570" src="assets/unsigned-3.png">
+<img align="center" width="870" src="assets/unsigned-3.png">
 
+## TSHOOT
+
+* http://docs.quay.io/issues/no-create-permission.html
+* https://jaland.github.io/tekton/2021/01/26/tekton-openshift.html
+* http://docs.quay.io/guides/repo-permissions.html
