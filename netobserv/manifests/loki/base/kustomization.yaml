@@ -4,8 +4,10 @@ kind: Kustomization
 namespace: network-observability
 
 commonAnnotations:
-  argocd.argoproj.io/sync-wave: "1"
+  argocd.argoproj.io/sync-wave: "0"
 
-bases:
-  - ../../base
-
+resources:
+  - cm.yaml
+  - pod.yaml
+  - pvc.yaml
+  - service.yaml
