@@ -46,7 +46,7 @@ cosign verify --key cosign.pub quay.io/${USERNAME}/httpd-24-centos7:0.1
 
 ## Configure Quay creds and RBAC
 
-* Export the token for the GitHub Registry / quay.io:
+* Export the token for the Quay Registry:
 
 ```bash
 export QUAY_TOKEN=""
@@ -276,7 +276,7 @@ pipelines-vote-api   1/1     1            1           29h
 
 ## Run Unsigned Pipeline
 
-* Run the pipeline for build the image and push to the GitHub registry, but this time without sign with cosign private key:
+* Run the pipeline for build the image and push to the Quay registry, but this time without sign with cosign private key:
 
 ```bash
 kubectl create -f run/unsigned-images-pipelinerun.yaml
