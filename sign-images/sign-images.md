@@ -61,7 +61,7 @@ export NAMESPACE="demo-sign"
 kubectl create ns ${NAMESPACE}
 ```
 
-* Generate a docker-registry secret with the credentials for GitHub Registry to push/pull the images and signatures:
+* Generate a docker-registry secret with the credentials for Quay Registry to push/pull the images and signatures:
 
 ```bash
 kubectl create secret docker-registry regcred --docker-server=quay.io --docker-username=${USERNAME} --docker-email=${EMAIL}--docker-password=${QUAY_TOKEN} -n ${NAMESPACE}
@@ -246,13 +246,13 @@ Now the new policy is generating an alert in our Stackrox / ACS cluster, checkin
 
 ## Run Signed Pipeline
 
-* Run the pipeline for build the image, push to the GitHub registry, sign the image with cosign, push the signature of the image to the GitHub registry:
+* Run the pipeline for build the image, push to the Quay registry, sign the image with cosign, push the signature of the image to the Quay registry:
 
 ```bash
 kubectl create -f run/sign-images-pipelinerun.yaml
 ```
 
-* This pipeline will deploy the signed image and also will be validated against kyverno cluster policy:
+* This pipeline will deploy the signed image and also will be validated against ACS/Stackrox System policy:
 
 ```bash
 k get deploy -n workshop pipelines-vote-api
