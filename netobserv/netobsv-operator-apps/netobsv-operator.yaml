@@ -1,14 +1,14 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: grafana-operator
+  name: netobsv-operator
 spec:
   destination:
     namespace: network-observability
     server: https://kubernetes.default.svc
   project: default
   source:
-    path: netobserv/manifests/grafana-operator/operator/overlays/base
+    path: netobserv/manifests/netobserv/operator/overlays/base
     repoURL: https://github.com/rcarrata/ocp4-network-security
     targetRevision: netobserv
   syncPolicy:
