@@ -6,9 +6,6 @@ namespace: network-observability
 commonAnnotations:
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 
-bases:
-- github.com/redhat-cop/gitops-catalog/grafana-operator/base/instance
-
 resources:
   - grafana-ds.yaml
   - grafana-netobsv-dashboard.yaml
