@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: network-observability-instances
+  name: argoapp-netobsv-instance
   namespace: openshift-gitops
 spec:
   destination:
@@ -15,6 +15,6 @@ spec:
   syncPolicy:
     automated:
       prune: true
-      selfHeal: false
+      selfHeal: true
     syncOptions:
     - CreateNamespace=true

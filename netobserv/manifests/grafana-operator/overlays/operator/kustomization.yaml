@@ -4,4 +4,4 @@ kind: Kustomization
 namespace: network-observability
 
 bases:
-- github.com/redhat-cop/gitops-catalog/grafana-operator/base/operator
+- github.com/redhat-cop/gitops-catalog/grafana-operator/overlays/example
