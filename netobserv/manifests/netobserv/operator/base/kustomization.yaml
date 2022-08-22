@@ -6,5 +6,8 @@ namespace: openshift-operators
 commonAnnotations:
   argocd.argoproj.io/sync-wave: "0"
 
+commonAnnotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+
 resources:
   - subscription.yaml

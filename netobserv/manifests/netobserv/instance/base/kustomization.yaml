@@ -6,5 +6,8 @@ namespace: network-observability
 commonAnnotations:
   argocd.argoproj.io/sync-wave: "1"
 
+commonAnnotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+
 resources:
   - flow_collector.yaml
