@@ -1,0 +1,19 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: network-observability-instance
+spec:
+  destination:
+    namespace: network-observability
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    path: manifests/netobserv/instance/overlays/default
+    repoURL: https://github.com/rcarrata/ocp4-network-security
+    targetRevision: netobserv
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: false
+    syncOptions:
+    - CreateNamespace=true

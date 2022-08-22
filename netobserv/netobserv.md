@@ -1,5 +1,22 @@
 ## Network Observability installation
 
+### With GitOps 
+
+* Install OpenShift Pipelines / Tekton:
+
+```bash
+until kubectl apply -k bootstrap-argo/; do sleep 2; done
+```
+
+* After couple of minutes check the OpenShift GitOps and Pipelines:
+
+```
+ARGOCD_ROUTE=$(kubectl get route openshift-gitops-server -n openshift-gitops -o jsonpath='{.spec.host}{"\n"}')
+curl -ks -o /dev/null -w "%{http_code}" https://$ARGOCD_ROUTE
+```
+
+### Without GitOps
+
 * Create namespace for network observability:
 
 ```sh
