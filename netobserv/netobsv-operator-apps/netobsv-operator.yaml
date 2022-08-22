@@ -8,7 +8,7 @@ spec:
     server: https://kubernetes.default.svc
   project: default
   source:
-    path: netobserv/manifests/netobserv/operator/overlays/base
+    path: netobserv/manifests/netobserv/operator/base
     repoURL: https://github.com/rcarrata/ocp4-network-security
     targetRevision: netobserv
   syncPolicy:
