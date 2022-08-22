@@ -8,7 +8,7 @@ spec:
     server: https://kubernetes.default.svc
   project: default
   source:
-    path: manifests/grafana-operator/overlays/instance
+    path: netobserv/manifests/grafana-operator/overlays/instance
     repoURL: https://github.com/rcarrata/ocp4-network-security
     targetRevision: netobserv
   syncPolicy:
