@@ -4,7 +4,7 @@ metadata:
   name: grafana-instance
 spec:
   destination:
-    namespace: network-observability
+    namespace: netobserv
     server: https://kubernetes.default.svc
   project: default
   source:
@@ -16,4 +16,4 @@ spec:
       prune: true
       selfHeal: true
     syncOptions:
-    - CreateNamespace=true
+      - CreateNamespace=true

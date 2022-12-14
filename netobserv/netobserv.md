@@ -5,7 +5,7 @@
 * Create namespace for network observability:
 
 ```sh
-kubectl create ns network-observability
+kubectl create ns netobserv
 ```
 
 * Install Loki (without OLM):
@@ -17,13 +17,13 @@ kubectl apply -k manifests/loki/base
 * Install Grafana Operator:
 
 ```sh
-kubectl apply -k manifests/grafana-operator/overlays/operator/base
+kubectl apply -k manifests/grafana-operator/operator
 ```
 
 * Deploy Grafana Instance:
 
 ```sh
-kubectl apply -k manifests/grafana-operator/overlays/instance
+kubectl apply -k manifests/grafana-operator/instance/overlays
 ```
 
 * Install Network Observability Operator:

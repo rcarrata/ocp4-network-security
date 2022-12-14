@@ -4,8 +4,9 @@ kind: Kustomization
 namespace: netobserv
 
 commonAnnotations:
-  argocd.argoproj.io/sync-wave: "1"
   argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 
 resources:
-  - flow_collector.yaml
+  - grafana-ds.yaml
+  - grafana-netobsv-dashboard.yaml
+  - ../base

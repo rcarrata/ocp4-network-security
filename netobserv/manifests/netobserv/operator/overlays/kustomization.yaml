@@ -7,7 +7,7 @@ commonAnnotations:
   argocd.argoproj.io/sync-wave: "0"
 
 bases:
-  - ../../base
+  - ../base
 
 patches:
   - target:
@@ -16,4 +16,4 @@ patches:
     patch: |-
       - op: replace
         path: /spec/channel
-        value: 'latest'
+        value: 'v0.2.x'
