@@ -106,7 +106,7 @@ cat <<EOF | kubectl apply -f -
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: acs-operator
+  name: acs-install
   namespace: openshift-gitops
 spec:
   destination:
@@ -116,7 +116,7 @@ spec:
   source:
     path: apps/acs
     repoURL: https://github.com/rcarrata/acs-gitops
-    targetRevision: develop
+    targetRevision: main
   syncPolicy:
     automated:
       prune: true
